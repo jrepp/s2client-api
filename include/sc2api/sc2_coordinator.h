@@ -54,6 +54,11 @@ public:
     //! \param path Absolute file path.
     void SetProcessPath(const std::string& path);
 
+    //! Set the correct data version of a replay to allow faster replay loading. Saves a few seconds if replay is not up to date.
+    //!  Works only in combination with correct process path set by "SetProcessPath".
+    //! \param version Look in "protocol/buildinfo/versions.json" for the property "data-hash". Or read it from "ReplayInfo.data_version".
+    void SetDataVersion(const std::string& version);
+
     //! Sets the timeout for network operations.
     //! \param value timeout_ms in milliseconds.
     void SetTimeoutMS(uint32_t timeout_ms = kDefaultProtoInterfaceTimeout);
@@ -81,6 +86,10 @@ public:
     //! \param y y position of game window.
     void SetWindowLocation(int x, int y);
 
+    //! Uses generalized abilities where possible. Example: BUILD_TECHLAB_BARRACKS, BUILD_TECHLAB_FACTORY, BUILD_TECHLAB_STARPORT 
+    //! ability ids are generalized to BUILD_TECHLAB ability id in the observation.
+    void SetUseGeneralizedAbilityId(bool value);
+
     //! Appends a command line argument to be fed to StarCraft II when starting.
     // \param option The string to be appended to the executable invoke.
     void AddCommandLine(const std::string& option);
@@ -102,6 +111,9 @@ public:
     //! Uses settings gathered from LoadSettings, specifically the path to the executable, to run StarCraft II.
     void LaunchStarcraft();
 
+    //! Attaches to a running Starcraft.
+    void Connect(int port);
+
     //! Starts a game on a certain map. There are multiple ways to specify a map:
     //! Absolute path: Any .SC2Map file.
     //! Relative path: Any .SC2Map file relative to either the library or installation maps folder.
@@ -109,6 +121,21 @@ public:
     //! \param map_path Path to the map to run.
     //! \return True if the game started, false if there was errors or the game didn't start, override OnError callback to see the exact errors.
     bool StartGame(const std::string& map_path = std::string());
+
+    //! Creates a game but does not join the agents to the game
+    //! \param map_path Path to the map to run.
+    //! Returns true if the game was successfully created
+    bool CreateGame(const std::string& map_path = std::string());
+
+    //! Joins agents to the game
+    //! Returns true if the agents were successfully connected to the game
+    bool JoinGame();
+
+    //! Sets up the sc2 game ports to use
+    //! param num_agents Number of agents in the game
+    //! param port_start Starting port number
+    //! param check_single  Checks if the game is a single player or multiplayer game
+    void SetupPorts(size_t num_agents, int port_start, bool check_single = true);
 
     // Run.
 

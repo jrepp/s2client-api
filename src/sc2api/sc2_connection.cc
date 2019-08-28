@@ -4,7 +4,7 @@
 #include <cassert>
 #include <chrono>
 
-#include "sc2api.pb.h"
+#include "s2clientprotocol/sc2api.pb.h"
 
 #include "civetweb.h"
 
@@ -92,8 +92,8 @@ static void ConnectionClosedHandler(const struct mg_connection* conn, void *) {
 }
 
 Connection::Connection() :
-    verbose_(false),
     connection_(nullptr),
+    verbose_(false),
     queue_(),
     mutex_(),
     condition_(),
@@ -147,7 +147,7 @@ void Connection::Send(const SC2APIProtocol::Request* request) {
     request->SerializeToArray(buffer, (int)size);
     mg_websocket_write(
         connection_,
-        WEBSOCKET_OPCODE_BINARY,
+        MG_WEBSOCKET_OPCODE_BINARY,
         (const char*) buffer,
         size);
 

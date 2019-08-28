@@ -1,5 +1,7 @@
 #include "sc2lib/sc2_search.h"
 
+#include <cmath>
+
 namespace sc2 {
 
 namespace search {
@@ -18,7 +20,7 @@ size_t CalculateQueries(float radius, float step_size, const Point2D& center, st
 
         QueryInterface::PlacementQuery query(ABILITY_ID::BUILD_COMMANDCENTER, point);
 
-        current_grid = Point2D(floor(point.x), floor(point.y));
+        current_grid = Point2D(std::floor(point.x), std::floor(point.y));
 
         if (previous_grid != current_grid) {
             queries.push_back(query);
@@ -36,7 +38,7 @@ std::vector<std::pair<Point3D, std::vector<Unit> > > Cluster(const Units& units,
     float squared_distance_apart = distance_apart * distance_apart;
     std::vector<std::pair<Point3D, std::vector<Unit> > > clusters;
     for (size_t i = 0, e = units.size(); i < e; ++i) {
-        const Unit& u = units[i];
+        const Unit& u = *units[i];
 
         float distance = std::numeric_limits<float>::max();
         std::pair<Point3D, std::vector<Unit> >* target_cluster = nullptr;
@@ -70,7 +72,13 @@ std::vector<Point3D> CalculateExpansionLocations(const ObservationInterface* obs
         [](const Unit& unit) {
             return unit.unit_type == UNIT_TYPEID::NEUTRAL_MINERALFIELD || unit.unit_type == UNIT_TYPEID::NEUTRAL_MINERALFIELD750 ||
                 unit.unit_type == UNIT_TYPEID::NEUTRAL_RICHMINERALFIELD || unit.unit_type == UNIT_TYPEID::NEUTRAL_RICHMINERALFIELD750 ||
-                unit.unit_type == UNIT_TYPEID::NEUTRAL_VESPENEGEYSER || unit.unit_type == UNIT_TYPEID::NEUTRAL_PROTOSSVESPENEGEYSER;
+                unit.unit_type == UNIT_TYPEID::NEUTRAL_PURIFIERMINERALFIELD || unit.unit_type == UNIT_TYPEID::NEUTRAL_PURIFIERMINERALFIELD750 ||
+                unit.unit_type == UNIT_TYPEID::NEUTRAL_PURIFIERRICHMINERALFIELD || unit.unit_type == UNIT_TYPEID::NEUTRAL_PURIFIERRICHMINERALFIELD750 ||
+                unit.unit_type == UNIT_TYPEID::NEUTRAL_LABMINERALFIELD || unit.unit_type == UNIT_TYPEID::NEUTRAL_LABMINERALFIELD750 ||
+                unit.unit_type == UNIT_TYPEID::NEUTRAL_BATTLESTATIONMINERALFIELD || unit.unit_type == UNIT_TYPEID::NEUTRAL_BATTLESTATIONMINERALFIELD750 ||
+                unit.unit_type == UNIT_TYPEID::NEUTRAL_VESPENEGEYSER || unit.unit_type == UNIT_TYPEID::NEUTRAL_PROTOSSVESPENEGEYSER ||
+                unit.unit_type == UNIT_TYPEID::NEUTRAL_SPACEPLATFORMGEYSER || unit.unit_type == UNIT_TYPEID::NEUTRAL_PURIFIERVESPENEGEYSER ||
+                unit.unit_type == UNIT_TYPEID::NEUTRAL_SHAKURASVESPENEGEYSER || unit.unit_type == UNIT_TYPEID::NEUTRAL_RICHVESPENEGEYSER;
         }
     );
 

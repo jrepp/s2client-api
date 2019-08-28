@@ -9,17 +9,23 @@ file(GLOB proto_files
     "../protocol/s2clientprotocol/*.proto"
 )
 
+if ("${proto_files}" STREQUAL "")
+	message(FATAL_ERROR "Missing root protocol submodule.\nRemove your protocol directory and run:\ngit submodule update --recursive --init")
+endif ()
+
 # Create the output directory for generated protos.
-file(MAKE_DIRECTORY ${PROJECT_BINARY_DIR}/generated)
+file(MAKE_DIRECTORY ${PROJECT_BINARY_DIR}/generated/s2clientprotocol)
 
 foreach(proto ${proto_files})
     get_filename_component(proto_name ${proto} NAME_WE)
-    list(APPEND proto_src ${PROJECT_BINARY_DIR}/generated/${proto_name}.pb.h ${PROJECT_BINARY_DIR}/generated/${proto_name}.pb.cc)
+    list(APPEND proto_src ${PROJECT_BINARY_DIR}/generated/s2clientprotocol/${proto_name}.pb.h ${PROJECT_BINARY_DIR}/generated/s2clientprotocol/${proto_name}.pb.cc)
 endforeach()
 
 # Now include that directory
 include_directories(SYSTEM "${PROJECT_BINARY_DIR}/generated")
 
+# Setup MSVC parallelized builds
+add_compile_options($<$<CXX_COMPILER_ID:MSVC>:/MP>)
 
 # Create the library
 add_library(sc2api ${sources_sc2})
@@ -48,6 +54,8 @@ endif ()
 
 # It requires includes to civetweb and our own headers.
 include_directories("../contrib/civetweb/include")
+include_directories("../contrib/SDL-mirror/include")
+include_directories("../contrib/ipv6-parse")
 include_directories("../include")
 
 if(COMMAND cmake_policy)
@@ -58,7 +66,7 @@ if (MSVC)
     set(CMAKE_CXX_FLAGS_DEBUG "/MTd /ZI /Od" CACHE STRING "" FORCE)
     set(CMAKE_CXX_FLAGS_RELEASE "/MT" CACHE STRING "" FORCE)
 
-    set_target_properties(c-library PROPERTIES COMPILE_FLAGS "/MT")
+    set_target_properties(civetweb-c-library PROPERTIES COMPILE_FLAGS "/MT")
 else()
     set(CMAKE_CXX_FLAGS "-fpermissive")  
 endif()
@@ -68,24 +76,25 @@ add_dependencies(sc2protocol protoc)
 foreach (proto ${proto_files})
     get_filename_component(proto_name ${proto} NAME)
     get_filename_component(proto_name_we ${proto} NAME_WE)
-    set(output ${PROJECT_BINARY_DIR}/generated/${proto_name_we}.pb.h)
+    set(outputCC ${PROJECT_BINARY_DIR}/generated/s2clientprotocol/${proto_name_we}.pb.cc)
+    set(outputH ${PROJECT_BINARY_DIR}/generated/s2clientprotocol/${proto_name_we}.pb.h)
 
     add_custom_command(
         DEPENDS protoc
-        COMMAND ${PROJECT_BINARY_DIR}/bin/protoc -I=${CMAKE_CURRENT_SOURCE_DIR}/../protocol/s2clientprotocol --cpp_out=${PROJECT_BINARY_DIR}/generated ${proto}
-        OUTPUT ${PROJECT_BINARY_DIR}/generated/${proto_name_we}.pb.cc ${output}
+        COMMAND ${PROJECT_BINARY_DIR}/bin/protoc -I=${CMAKE_CURRENT_SOURCE_DIR}/../protocol/ --cpp_out=${PROJECT_BINARY_DIR}/generated ${proto}
+        OUTPUT ${outputCC} ${outputH}
     )
 
 endforeach()
 
 
-if (WIN32)
+if (MSVC)
     set_target_properties(sc2api PROPERTIES COMPILE_FLAGS "/W4 /WX")
     set_target_properties(sc2lib PROPERTIES COMPILE_FLAGS "/W4 /WX")
     set_target_properties(sc2renderer PROPERTIES COMPILE_FLAGS "/W4 /WX")
     set_target_properties(sc2utils PROPERTIES COMPILE_FLAGS "/W3 /WX")
     set_target_properties(sc2protocol PROPERTIES COMPILE_FLAGS "/W0")
-endif (WIN32)
+endif (MSVC)
 
-target_link_libraries(sc2api sc2protocol c-library)
+target_link_libraries(sc2api sc2protocol civetweb-c-library ipv6-parse)
 target_link_libraries(sc2lib sc2api)

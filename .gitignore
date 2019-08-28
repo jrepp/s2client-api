@@ -20,6 +20,7 @@
 *.app
 
 build/
+build_*/
 
 *.swp
 
@@ -53,3 +54,7 @@ project/include
 project/lib
 
 .DS_Store
+
+docs/html
+docs/latex
+doxygen.log

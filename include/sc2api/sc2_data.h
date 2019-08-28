@@ -172,6 +172,31 @@ struct UnitTypeData {
     float armor;
     //! Weapons on this unit type.
     std::vector<Weapon> weapons;
+    //! How much food the unit requires.
+    float food_required;
+    //! How much food the unit provides.
+    float food_provided;
+    //! Which ability id creates the unit.
+    AbilityID ability_id;
+    //! The race the unit belongs to.
+    Race race;
+    //! How long the unit takes to build.
+    float build_time;
+    //! Whether the unit can have minerals (mineral patches).
+    bool has_minerals;
+    //! Whether the unit can have vespene (vespene geysers).
+    bool has_vespene;
+    //! Range the unit reveals vision.
+    float sight_range;
+
+    //! Units this is equivalent to in terms of satisfying tech requirements.
+    std::vector<UnitTypeID> tech_alias;
+    //! Units that are morphed variants of the same unit.
+    UnitTypeID unit_alias;
+    //! Structure required to build this unit. (Or any with the same tech_alias)
+    UnitTypeID tech_requirement;
+    //! Whether tech_requirement is an add-on.
+    bool require_attached;
 
     //! Constructor.
     UnitTypeData();
@@ -187,8 +212,18 @@ typedef std::vector<UnitTypeData> UnitTypes;
 
 //! Upgrade data.
 struct UpgradeData {
-    uint32_t upgrade_id;                                // Stable ID.
-    std::string name;                                   // Catalog name of the upgrade.
+    //! Stable ID. This ID will not change between patches.
+    uint32_t upgrade_id;
+    //! Upgrade name, corresponds to the game's catalog.
+    std::string name;
+    //! Mineral cost of researching the upgrade.
+    uint32_t mineral_cost;
+    //! Vespene cost of researching the upgrade.
+    uint32_t vespene_cost;
+    //! Ability that researches this upgrade.
+    AbilityID ability_id;
+    //! Time in GameLoops to research this upgrade.
+    float research_time;
 
     UpgradeData();
 
@@ -200,14 +235,35 @@ typedef std::vector<UpgradeData> Upgrades;
 
 //! Buff data.
 struct BuffData {
-    uint32_t buff_id;                                   // Stable ID.
-    std::string name;                                   // Catalog name of the buff.
+    //! Stable ID. This ID will not change between patches.
+    uint32_t buff_id;
+    //! Buff name, corresponds to the game's catalog.
+    std::string name;
 
     BuffData();
 
     void ReadFromProto(const SC2APIProtocol::BuffData& buff_data);
     std::string Log() const;
 };
+
+typedef std::vector<BuffData> Buffs;
+
+//! Effect data.
+struct EffectData {
+    //! Stable ID. This ID will not change between patches.
+    uint32_t effect_id;
+    //! Effect name, corresponds to the game's catalog.
+    std::string name;
+    //! A more recognizable name of the effect.
+    std::string friendly_name;
+    //! Size of the circle the effect impacts.
+    float radius;
+
+    void ReadFromProto(const SC2APIProtocol::EffectData& effect_data);
+    std::string Log() const;
+};
+
+typedef std::vector<EffectData> Effects;
 
 //! Power source information for Protoss.
 struct PowerSource {
@@ -224,7 +280,16 @@ struct PowerSource {
     Tag tag;
 };
 
-typedef std::vector<BuffData> Buffs;
+//! The visuals of a persistent ability on the map. (eg. Psistorm)
+struct Effect {
+    //! Type of the effect
+    uint32_t effect_id;
+    //! All the positions that this effect is impacting on the map.
+    //! eg. The Lurker's attack impacts multiple positions in a line.
+    std::vector<Point2D> positions;
+
+    void ReadFromProto(const SC2APIProtocol::Effect& effect);
+};
 
 AbilityID GetGeneralizedAbilityID(uint32_t ability_id, const ObservationInterface& observation);
 

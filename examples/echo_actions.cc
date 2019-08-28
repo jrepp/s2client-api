@@ -7,6 +7,8 @@
 #include <random>
 #include <cmath>
 
+static uint32_t c_text_size = 8;
+
 static std::string GetAbilityText(sc2::AbilityID ability_id) {
     std::string str;
     str += sc2::AbilityTypeToName(ability_id);
@@ -80,9 +82,9 @@ public:
 
         // Find a selected unit. {
         const sc2::Unit* unit = nullptr;
-        for (const sc2::Unit& try_unit : obs->GetUnits()) {
-            if (try_unit.is_selected && try_unit.alliance == sc2::Unit::Self) {
-                unit = &try_unit;
+        for (const auto& try_unit : obs->GetUnits()) {
+            if (try_unit->is_selected && try_unit->alliance == sc2::Unit::Self) {
+                unit = try_unit;
                 break;
             }
         }
@@ -103,7 +105,7 @@ public:
             debug_txt += " (" + std::to_string(unit->unit_type) + ")";
         }
 
-        sc2::AvailableAbilities available_abilities = query->GetAbilitiesForUnit(unit->tag);
+        sc2::AvailableAbilities available_abilities = query->GetAbilitiesForUnit(unit);
         if (available_abilities.abilities.size() < 1) {
             std::cout << "No abilities available for this unit" << std::endl;
         }
@@ -116,7 +118,7 @@ public:
                 debug_txt += GetAbilityText(ability.ability_id) + "\n";
             }
         }
-        debug->DebugTextOut(debug_txt, unit->pos, sc2::Colors::Green);
+        debug->DebugTextOut(debug_txt, unit->pos, sc2::Colors::Green, c_text_size);
 
         // Show the direction of the unit.
         sc2::Point3D p1; // Use this to show target distance.
@@ -185,7 +187,7 @@ public:
             sc2::Point3D p = target;
             p.z += 0.1f; // Raise the line off the ground a bit so it renders more clearly.
             debug->DebugSphereOut(target, 1.25f, sc2::Colors::Blue);
-            debug->DebugTextOut(target_info, p1, sc2::Colors::Yellow);
+            debug->DebugTextOut(target_info, p1, sc2::Colors::Yellow, c_text_size);
         }
 
         debug->SendDebug();

@@ -44,8 +44,12 @@ struct PassengerUnit {
     float health_max;
     //! The shield of the unit in the transport.
     float shield;
+    //! The max possible shield of the unit in the transport.
+    float shield_max;
     //! The energy of the unit in the transport.
     float energy;
+    //! The max possible energy of the unit in the transport.
+    float energy_max;
     //! The type of unit in the transport.
     UnitTypeID unit_type;
 
@@ -54,7 +58,9 @@ struct PassengerUnit {
         health(0.0f),
         health_max(0.0f),
         shield(0.0f),
+        shield_max(0.0f),
         energy(0.0f),
+        energy_max(0.0f),
         unit_type(0) {
     }
 };
@@ -141,8 +147,12 @@ public:
     float health_max;
     //! Shield of the unit. Not set for snapshots.
     float shield;
+    //! Max shield of the unit. Not set for snapshots.
+    float shield_max;
     //! Energy of the unit. Not set for snapshots.
     float energy;
+    //! Max energy of the unit. Not set for snapshots.
+    float energy_max;
     //! Amount of minerals if the unit is a mineral field. Not set for snapshots.
     int mineral_contents;
     //! Amount of vespene if the unit is a geyser. Not set for snapshots.
@@ -174,14 +184,43 @@ public:
     Tag engaged_target_tag;
     //! Buffs on this unit. Only valid for this player's units.
     std::vector<BuffID> buffs;
+    //! Whether the unit is powered by a pylon.
+    bool is_powered;
+
+    //! Whether the unit is alive or not.
+    bool is_alive;
+    //! The last time the unit was seen.
+    uint32_t last_seen_game_loop;
 
     Unit();
-
-    operator Tag() const { return tag; }
 };
 
-typedef std::vector<Unit> Units;
+typedef std::vector<const Unit*> Units;
 typedef std::unordered_map<Tag, size_t> UnitIdxMap;
+
+class UnitPool {
+public:
+    Unit* CreateUnit(Tag tag);
+    Unit* GetUnit(Tag tag) const;
+    Unit* GetExistingUnit(Tag tag) const;
+    void MarkDead(Tag tag);
+
+    //TODO: Change alive -> Exist
+    void ForEachExistingUnit(const std::function<void(Unit& unit)>& functor) const;
+    void ClearExisting();
+    bool UnitExists(Tag tag);
+
+private:
+    void IncrementIndex();
+
+    static const size_t ENTRY_SIZE = 1000;
+    typedef std::pair<size_t, size_t> PoolIndex;
+    // std::array<Unit, ENTRY_SIZE>
+    std::vector<std::vector<Unit> > unit_pool_;
+    PoolIndex available_index_;
+    std::unordered_map<Tag, Unit*> tag_to_unit_;
+    std::unordered_map<Tag, Unit*> tag_to_existing_unit_;
+};
 
 //! Determines if the unit matches the unit type.
 struct IsUnit {

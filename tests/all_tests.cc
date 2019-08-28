@@ -3,6 +3,7 @@
 #include "test_feature_layer.h"
 #include "test_feature_layer_mp.h"
 #include "test_multiplayer.h"
+#include "test_rendered.h"
 #include "test_snapshots.h"
 #include "test_app.h"
 #include "test_unit_command.h"
@@ -36,17 +37,16 @@ int main(int argc, char* argv[]) {
 
     // Add tests here.
     TEST(sc2::TestAbilityRemap);
-    //TEST(sc2::TestApp);
     TEST(sc2::TestSnapshots);
     TEST(sc2::TestMultiplayer);
     TEST(sc2::TestMovementCombat);
     TEST(sc2::TestFastRestartSinglePlayer);
-    //TEST(sc2::TestFeatureLayers);
-    //TEST(sc2::TestFeatureLayersMP);
     TEST(sc2::TestUnitCommand);
     TEST(sc2::TestPerformance);
     TEST(sc2::TestObservationInterface);
     //TEST(sc2::TestObservationActions);
+    TEST(sc2::TestRendered);
+
     if (success)
         std::cout << "All tests succeeded!" << std::endl;
     else

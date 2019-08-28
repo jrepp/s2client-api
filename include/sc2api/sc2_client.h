@@ -37,11 +37,14 @@ enum class ClientError {
     SC2AppFailure,       /*! SC2 has either crashed or been forcibly terminated by this library because it was not responding to requests. */
     SC2ProtocolError,    /*! The response from SC2 contains errors, most likely meaning the API was not used in a correct way. */
     SC2ProtocolTimeout,  /*! A request was made and a response was not received in the amount of time given by the timeout. */
+    WrongGameVersion,    /*! A replay was attempted to be loaded in the wrong game version. */
 };
 
 //! A set of common events a user can override in their derived bot or replay observer class.
 class ClientEvents {
 public:
+    virtual ~ClientEvents() {}
+
     //! Called when a game is started after a load. Fast restarting will not call this.
     virtual void OnGameFullStart() {}
 
@@ -51,24 +54,24 @@ public:
     //! Called when a game has ended.
     virtual void OnGameEnd() {}
 
-    //! This event will only get called when stepping. It will not get called in a real time game.
-    //! In a real time game the user will be responsible for calling GetObservation() via the ObservationInterface.
+    //! In non realtime games this function gets called after each step as indicated by step size.
+    //! In realtime this function gets called as often as possible after request/responses are received from the game gathering observation state.
     virtual void OnStep() {}
 
     //! Called whenever one of the player's units has been destroyed.
     //!< \param unit The destroyed unit.
-    virtual void OnUnitDestroyed(const Unit&) {}
+    virtual void OnUnitDestroyed(const Unit*) {}
 
     //! Called when a Unit has been created by the player.
     //!< \param unit The created unit.
-    virtual void OnUnitCreated(const Unit&) {}
+    virtual void OnUnitCreated(const Unit*) {}
 
     //! Called when a unit becomes idle, this will only occur as an event so will only be called when the unit becomes
     //! idle and not a second time. Being idle is defined by having orders in the previous step and not currently having
     //! orders or if it did not exist in the previous step and now does, a unit being created, for instance, will call both
     //! OnUnitCreated and OnUnitIdle if it does not have a rally set.
     //!< \param unit The idle unit.
-    virtual void OnUnitIdle(const Unit&) {}
+    virtual void OnUnitIdle(const Unit*) {}
 
     //! Called when an upgrade is finished, warp gate, ground weapons, baneling speed, etc.
     //!< \param upgrade The completed upgrade.
@@ -76,7 +79,7 @@ public:
 
     //! Called when the unit in the previous step had a build progress less than 1.0 but is greater than or equal to 1.0 in the current step.
     //!< \param unit The constructed unit.
-    virtual void OnBuildingConstructionComplete(const Unit&) {}
+    virtual void OnBuildingConstructionComplete(const Unit*) {}
 
     //! Called when a nydus is placed.
     virtual void OnNydusDetected() {}
@@ -86,7 +89,7 @@ public:
 
     //! Called when an enemy unit enters vision from out of fog of war.
     //!< \param unit The unit entering vision.
-    virtual void OnUnitEnterVision(const Unit&) {}
+    virtual void OnUnitEnterVision(const Unit*) {}
 
     //! Called for various errors the library can encounter. See ClientError enum for possible errors.
     virtual void OnError(const std::vector<ClientError>& /*client_errors*/, const std::vector<std::string>& /*protocol_errors*/ = {}) {}
@@ -133,5 +136,8 @@ bool IsCarryingMinerals(const Unit& unit);
 //!< \return Returns true if the unit is carrying vespene, false otherwise.
 bool IsCarryingVespene(const Unit& unit);
 
+struct IsVisible {
+    bool operator()(const Unit& unit);
+};
 
 }
